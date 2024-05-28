@@ -110,7 +110,8 @@ class Sampler(nn.Module):
         # Get the logprobs query results.
         prompt_logprobs, sample_logprobs = _get_logprobs(
             logprobs, sampling_metadata, sample_results)
-        return _build_sampler_output(sample_results,
+        return _build_sampler_output(logits,
+                                     sample_results,
                                      sampling_metadata,
                                      prompt_logprobs,
                                      sample_logprobs,
@@ -970,6 +971,7 @@ def _modify_greedy_probs_inplace(logprobs: torch.Tensor, probs: torch.Tensor,
 
 
 def _build_sampler_output(
+    logits,
     sample_results: SampleResultType,
     sampling_metadata: SamplingMetadata,
     prompt_logprobs: List[Optional[PromptLogprobs]],
@@ -986,29 +988,20 @@ def _build_sampler_output(
             speculative decoding rejection sampling.
     """
 
+    # If not specified, store None values in SamplerOutput.
+    if on_device_tensors is not None:
+        (sampled_token_probs, logprobs_tensor, sampled_token_ids) = on_device_tensors
+    else:
+        sampled_token_probs, logprobs_tensor, sampled_token_ids = (None, None, None)
+
     sampler_output = []
-    for (seq_group, sample_result, group_prompt_logprobs,
-         group_sample_logprobs) in zip(sampling_metadata.seq_groups,
-                                       sample_results, prompt_logprobs,
-                                       sample_logprobs):
+    for (seq_group, sample_result, group_prompt_logprobs, group_sample_logprobs) in zip(sampling_metadata.seq_groups, sample_results, prompt_logprobs, sample_logprobs):
         seq_ids = seq_group.seq_ids
         next_token_ids, parent_ids = sample_result
         seq_outputs = []
-        for parent_id, next_token_id, logprobs in zip(parent_ids,
-                                                      next_token_ids,
-                                                      group_sample_logprobs):
-            seq_outputs.append(
-                SequenceOutput(seq_ids[parent_id], next_token_id, logprobs))
-        sampler_output.append(
-            SequenceGroupOutput(seq_outputs, group_prompt_logprobs))
-
-    # If not specified, store None values in SamplerOutput.
-    if on_device_tensors is not None:
-        (sampled_token_probs, logprobs_tensor,
-         sampled_token_ids) = on_device_tensors
-    else:
-        sampled_token_probs, logprobs_tensor, sampled_token_ids = (None, None,
-                                                                   None)
+        for parent_id, next_token_id, logprobs, sample_idx in zip(parent_ids, next_token_ids, group_sample_logprobs, seq_group.sample_indices):
+            seq_outputs.append(SequenceOutput(seq_ids[parent_id], next_token_id, logprobs, logits[sample_idx]))
+        sampler_output.append(SequenceGroupOutput(seq_outputs, group_prompt_logprobs))
 
     return SamplerOutput(
         outputs=sampler_output,
