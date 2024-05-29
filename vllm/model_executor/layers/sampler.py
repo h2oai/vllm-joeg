@@ -46,6 +46,9 @@ class Sampler(nn.Module):
         # speculative decoding.
         self.include_gpu_probs_tensor = False
 
+        self.classification_head = torch.nn.Linear(1, 1, bias=False).to("cuda")
+        self.classification_head.weight.data = torch.load("classification_head.pth", map_location="cuda").bfloat16()
+
     def forward(
         self,
         logits: torch.Tensor,
@@ -60,6 +63,10 @@ class Sampler(nn.Module):
         _, vocab_size = logits.shape
 
         logits = _apply_min_tokens_penalty(logits, sampling_metadata)
+
+        classification_probs = torch.nn.functional.sigmoid(
+            self.classification_head(logits)
+        ).flatten().tolist()
 
         # Prepare sampling tensors with pinned memory to avoid blocking.
         (sampling_tensors, do_penalties, do_top_p_top_k,
@@ -110,7 +117,7 @@ class Sampler(nn.Module):
         # Get the logprobs query results.
         prompt_logprobs, sample_logprobs = _get_logprobs(
             logprobs, sampling_metadata, sample_results)
-        return _build_sampler_output(logits,
+        return _build_sampler_output(classification_probs,
                                      sample_results,
                                      sampling_metadata,
                                      prompt_logprobs,
@@ -971,7 +978,7 @@ def _modify_greedy_probs_inplace(logprobs: torch.Tensor, probs: torch.Tensor,
 
 
 def _build_sampler_output(
-    logits,
+    classification_probs,
     sample_results: SampleResultType,
     sampling_metadata: SamplingMetadata,
     prompt_logprobs: List[Optional[PromptLogprobs]],
@@ -1000,7 +1007,7 @@ def _build_sampler_output(
         next_token_ids, parent_ids = sample_result
         seq_outputs = []
         for parent_id, next_token_id, logprobs, sample_idx in zip(parent_ids, next_token_ids, group_sample_logprobs, seq_group.sample_indices):
-            seq_outputs.append(SequenceOutput(seq_ids[parent_id], next_token_id, logprobs, logits[sample_idx]))
+            seq_outputs.append(SequenceOutput(seq_ids[parent_id], next_token_id, logprobs, classification_probs[sample_idx]))
         sampler_output.append(SequenceGroupOutput(seq_outputs, group_prompt_logprobs))
 
     return SamplerOutput(

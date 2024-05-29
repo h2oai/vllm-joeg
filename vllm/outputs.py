@@ -30,7 +30,7 @@ class CompletionOutput:
         text: str,
         token_ids: List[int],
         cumulative_logprob: float,
-        logits: List[float],
+        classification_probs: List[float],
         logprobs: Optional[SampleLogprobs],
         finish_reason: Optional[str] = None,
         stop_reason: Union[int, str, None] = None,
@@ -44,7 +44,7 @@ class CompletionOutput:
         self.finish_reason = finish_reason
         self.stop_reason = stop_reason
         self.lora_request = lora_request
-        self.logits = logits
+        self.classification_probs = classification_probs
 
     def finished(self) -> bool:
         return self.finish_reason is not None
@@ -54,7 +54,7 @@ class CompletionOutput:
                 f"text={self.text!r}, "
                 f"token_ids={self.token_ids}, "
                 f"cumulative_logprob={self.cumulative_logprob}, "
-                f"logits={self.logits[0][:3]} ... {self.logits[0][-3:]}, "
+                f"classification_probs={self.classification_probs}, "
                 f"logprobs={self.logprobs}, "
                 f"finish_reason={self.finish_reason}, "
                 f"stop_reason={self.stop_reason})")
@@ -122,7 +122,7 @@ class RequestOutput:
                 seq.get_output_text_to_return(text_buffer_length),
                 seq.get_output_token_ids(),
                 seq.get_cumulative_logprob(),
-                seq.get_output_logits(),
+                seq.get_output_classification_probs(),
                 seq.output_logprobs if include_logprobs else None,
                 SequenceStatus.get_finished_reason(seq.status),
                 seq.stop_reason,

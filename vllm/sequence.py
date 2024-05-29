@@ -113,7 +113,7 @@ class SequenceData:
     def __init__(
         self,
         prompt_token_ids: List[int],
-        output_logits: Optional[List[float]] = None,
+        output_classification_probs: Optional[List[float]] = None,
         output_token_ids: Optional[List[int]] = None,
     ) -> None:
         if output_token_ids is None:
@@ -121,15 +121,15 @@ class SequenceData:
 
         self.prompt_token_ids = prompt_token_ids
         self.output_token_ids = output_token_ids
-        self.output_logits = output_logits or []
+        self.output_classification_probs = output_classification_probs or []
         self.cumulative_logprob = 0.0
         # The number of tokens that are computed (that run against the model).
         self._num_computed_tokens = 0
         self._stage: SequenceStage = SequenceStage.PREFILL
 
-    def append_token_id(self, token_id: int, logprob: float, logits: List[float]) -> None:
+    def append_token_id(self, token_id: int, logprob: float, classification_probs: List[float]) -> None:
         self.output_token_ids.append(token_id)
-        self.output_logits.append(logits)
+        self.output_classification_probs.append(classification_probs)
         self.cumulative_logprob += logprob
 
     def get_len(self) -> int:
@@ -138,8 +138,8 @@ class SequenceData:
     def get_prompt_len(self) -> int:
         return len(self.prompt_token_ids)
 
-    def get_output_logits(self) -> List[float]:
-        return self.output_logits
+    def get_output_classification_probs(self) -> List[float]:
+        return self.output_classification_probs
 
     def get_output_len(self) -> int:
         return len(self.output_token_ids)
@@ -225,7 +225,7 @@ class Sequence:
         self.lora_request = lora_request
 
         self.data: SequenceData = SequenceData(prompt_token_ids)
-        self.output_logits = []
+        self.output_classification_probs = []
         self.output_logprobs: SampleLogprobs = []
         self.output_text = ""
 
@@ -295,13 +295,13 @@ class Sequence:
         self,
         token_id: int,
         logprobs: Dict[int, Logprob],
-        logits: List[float],
+        classification_probs: List[float],
     ) -> None:
         assert token_id in logprobs
         self._append_tokens_to_blocks([token_id])
         self.output_logprobs.append(logprobs)
-        self.output_logits.append(logits)
-        self.data.append_token_id(token_id, logprobs[token_id].logprob, logits)
+        self.output_classification_probs.append(classification_probs)
+        self.data.append_token_id(token_id, logprobs[token_id].logprob, classification_probs)
 
     def get_len(self) -> int:
         return self.data.get_len()
@@ -312,8 +312,8 @@ class Sequence:
     def get_output_len(self) -> int:
         return self.data.get_output_len()
 
-    def get_output_logits(self) -> List[float]:
-        return self.data.get_output_logits()
+    def get_output_classification_probs(self) -> List[float]:
+        return self.data.get_output_classification_probs()
 
     def get_token_ids(self) -> List[int]:
         return self.data.get_token_ids()
@@ -656,16 +656,16 @@ class SequenceOutput:
         parent_seq_id: int,
         output_token: int,
         logprobs: Dict[int, Logprob],
-        logits
+        classification_probs: List[float]
     ) -> None:
         self.parent_seq_id = parent_seq_id
-        self.output_logits = logits.tolist()
+        self.output_classification_probs = classification_probs
         self.output_token = output_token
         self.logprobs = logprobs
 
     def __repr__(self) -> str:
         return (f"SequenceOutput(parent_seq_id={self.parent_seq_id}, "
-                f"output_logits_len={len(self.output_logits)}, "
+                f"output_classification_probs={self.output_classification_probs}, "
                 f"output_token={self.output_token}, "
                 f"logprobs={self.logprobs})")
 
