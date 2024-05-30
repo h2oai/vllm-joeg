@@ -48,7 +48,8 @@ class Sampler(nn.Module):
         self.include_gpu_probs_tensor = False
 
         self.classification_head = torch.nn.Linear(1, 1, bias=False).to("cuda")
-        self.classification_head.weight.data = torch.load("classification_head.pth", map_location="cuda").bfloat16()
+        self.classification_head.weight.data = torch.load(
+            "classification_head.pth", map_location="cuda").bfloat16()
 
     def forward(
         self,
@@ -66,8 +67,7 @@ class Sampler(nn.Module):
         logits = _apply_min_tokens_penalty(logits, sampling_metadata)
 
         classification_probs = torch.nn.functional.sigmoid(
-            self.classification_head(logits)
-        ).flatten().tolist()
+            self.classification_head(logits)).flatten().tolist()
 
         # Prepare sampling tensors with pinned memory to avoid blocking.
         (sampling_tensors, do_penalties, do_top_p_top_k,
@@ -1018,20 +1018,29 @@ def _build_sampler_output(
     """
 
     sampler_output = []
-    for (seq_group, sample_result, group_prompt_logprobs, group_sample_logprobs) in zip(sampling_metadata.seq_groups, sample_results, prompt_logprobs, sample_logprobs):
+    for (seq_group, sample_result, group_prompt_logprobs,
+         group_sample_logprobs) in zip(sampling_metadata.seq_groups,
+                                       sample_results, prompt_logprobs,
+                                       sample_logprobs):
         seq_ids = seq_group.seq_ids
         next_token_ids, parent_ids = sample_result
         seq_outputs = []
-        for parent_id, next_token_id, logprobs, sample_idx in zip(parent_ids, next_token_ids, group_sample_logprobs, seq_group.sample_indices):
-            seq_outputs.append(SequenceOutput(seq_ids[parent_id], next_token_id, logprobs, classification_probs[sample_idx]))
-        sampler_output.append(CompletionSequenceGroupOutput(seq_outputs, group_prompt_logprobs))
+        for parent_id, next_token_id, logprobs, sample_idx in zip(
+                parent_ids, next_token_ids, group_sample_logprobs,
+                seq_group.sample_indices):
+            seq_outputs.append(
+                SequenceOutput(seq_ids[parent_id], next_token_id, logprobs,
+                               classification_probs[sample_idx]))
+        sampler_output.append(
+            CompletionSequenceGroupOutput(seq_outputs, group_prompt_logprobs))
 
     # If not specified, store None values in SamplerOutput.
     if on_device_tensors is not None:
         (sampled_token_probs, logprobs_tensor,
          sampled_token_ids) = on_device_tensors
     else:
-        sampled_token_probs, logprobs_tensor, sampled_token_ids = (None, None, None)
+        sampled_token_probs, logprobs_tensor, sampled_token_ids = (None, None,
+                                                                   None)
     return SamplerOutput(
         outputs=sampler_output,
         sampled_token_probs=sampled_token_probs,
