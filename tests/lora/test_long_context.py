@@ -96,6 +96,7 @@ def batched_generate(
             prompt,
             sampling_param,
             lora_request=lora_req,
+            prompt_adapter_request=None,
         )
 
     outputs = llm._run_engine(use_tqdm=True)
