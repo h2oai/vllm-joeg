@@ -24,12 +24,12 @@ class WorkerPromptAdapterManager(AbstractWorkerManager):
     _manager_cls: Type[PromptAdapterModelManager] = PromptAdapterModelManager
 
     def __init__(
-            self,
-            max_num_seqs: int,
-            max_num_batched_tokens: int,
-            device: torch.device,
-            prompt_adapter_config: PromptAdapterConfig,
-            prompt_adapter_model_cls: Type[PromptAdapterModel] = PromptAdapterModel
+        self,
+        max_num_seqs: int,
+        max_num_batched_tokens: int,
+        device: torch.device,
+        prompt_adapter_config: PromptAdapterConfig,
+        prompt_adapter_model_cls: Type[PromptAdapterModel] = PromptAdapterModel
     ):
         self._prompt_adapter_manager: Optional[
             PromptAdapterModelManager] = None
@@ -44,8 +44,8 @@ class WorkerPromptAdapterManager(AbstractWorkerManager):
         return True
 
     def create_prompt_adapter_manager(
-            self,
-            model: torch.nn.Module,
+        self,
+        model: torch.nn.Module,
     ) -> Any:
         prompt_adapter_manager = create_prompt_adapter_manager(
             model,
@@ -131,8 +131,8 @@ class LRUCacheWorkerPromptAdapterManager(WorkerPromptAdapterManager):
         LRUCachePromptAdapterModelManager] = LRUCachePromptAdapterModelManager
 
     def create_prompt_adapter_manager(
-            self,
-            model: torch.nn.Module,
+        self,
+        model: torch.nn.Module,
     ) -> Any:
         prompt_adapter_manager = create_prompt_adapter_manager(
             model,

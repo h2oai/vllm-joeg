@@ -138,7 +138,8 @@ class ModelRunner:
         self.flashinfer_workspace_buffer: torch.Tensor
         # Set after load_model.
         self.lora_manager: Optional[LRUCacheWorkerLoRAManager] = None
-        self.prompt_adapter_manager: Optional[LRUCacheWorkerPromptAdapterManager] = None
+        self.prompt_adapter_manager: Optional[
+            LRUCacheWorkerPromptAdapterManager] = None
 
     def load_model(self) -> None:
         with CudaMemoryProfiler() as m:
@@ -179,10 +180,11 @@ class ModelRunner:
             )
             self.model = self.lora_manager.create_lora_manager(self.model)
             if self.prompt_adapter_config:
-                self.prompt_adapter_manager = LRUCacheWorkerPromptAdapterManager(
-                    self.scheduler_config.max_num_seqs,
-                    self.scheduler_config.max_num_batched_tokens, self.device,
-                    self.prompt_adapter_config)
+                self.prompt_adapter_manager = (
+                    LRUCacheWorkerPromptAdapterManager(
+                        self.scheduler_config.max_num_seqs,
+                        self.scheduler_config.max_num_batched_tokens,
+                        self.device, self.prompt_adapter_config))
                 self.model = self.prompt_adapter_manager \
                     .create_prompt_adapter_manager(self.model)
 
@@ -455,7 +457,7 @@ class ModelRunner:
                 prompt_adapter_prompt_mapping.extend(
                     [prompt_adapter_id] *
                     (query_len if seq_group_metadata.sampling_params
-                                  and seq_group_metadata.sampling_params.prompt_logprobs
+                     and seq_group_metadata.sampling_params.prompt_logprobs
                      else 1))
 
                 if _is_block_tables_empty(seq_group_metadata.block_tables):
@@ -741,7 +743,8 @@ class ModelRunner:
 
         return (input_tokens, input_positions, attn_metadata,
                 sampling_metadata, lora_requests, lora_mapping,
-                multi_modal_input, prompt_adapter_requests, prompt_adapter_mapping)
+                multi_modal_input, prompt_adapter_requests,
+                prompt_adapter_mapping)
 
     @torch.inference_mode()
     def execute_model(

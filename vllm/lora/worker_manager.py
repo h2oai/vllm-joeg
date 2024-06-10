@@ -171,8 +171,7 @@ class LRUCacheWorkerLoRAManager(WorkerLoRAManager):
     (unless they are already loaded) and least recently used LoRAs will
     be unloaded if the cache is above capacity."""
 
-    _manager_cls: Type[
-        LRUCacheLoRAModelManager] = LRUCacheLoRAModelManager
+    _manager_cls: Type[LRUCacheLoRAModelManager] = LRUCacheLoRAModelManager
 
     def create_lora_manager(
         self,

@@ -536,11 +536,12 @@ class LLM:
         prompt_adapter_request: Optional[PromptAdapterRequest] = None,
     ) -> None:
         request_id = str(next(self.request_counter))
-        self.llm_engine.add_request(request_id,
-                                    inputs,
-                                    params,
-                                    lora_request=lora_request,
-                                    prompt_adapter_request=prompt_adapter_request)
+        self.llm_engine.add_request(
+            request_id,
+            inputs,
+            params,
+            lora_request=lora_request,
+            prompt_adapter_request=prompt_adapter_request)
 
     def _run_engine(
             self, *, use_tqdm: bool

@@ -57,13 +57,13 @@ class AdapterModelManager:
     def __len__(self) -> int:
         return len(self._registered_adapters)
 
-    @abstractmethod
     @property
+    @abstractmethod
     def adapter_slots(self):
         ...
 
-    @abstractmethod
     @property
+    @abstractmethod
     def capacity(self):
         ...
 

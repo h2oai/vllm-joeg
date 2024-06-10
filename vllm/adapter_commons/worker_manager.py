@@ -9,13 +9,13 @@ class AbstractWorkerManager(ABC):
     def __init__(self, device: torch.device):
         self.device = device
 
-    @abstractmethod
     @property
+    @abstractmethod
     def _model_manager(self):
         ...
 
-    @abstractmethod
     @property
+    @abstractmethod
     def is_enabled(self) -> bool:
         ...
 
