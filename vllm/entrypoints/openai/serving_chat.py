@@ -177,6 +177,7 @@ class OpenAIServingChat(OpenAIServing):
                     sampling_params.logits_processors = []
                 sampling_params.logits_processors.append(
                     guided_decode_logits_processor)
+            prompt_adapter_request = request.to_prompt_adapter_request()
         except ValueError as e:
             return self.create_error_response(str(e))
 
@@ -188,6 +189,7 @@ class OpenAIServingChat(OpenAIServing):
             sampling_params,
             request_id,
             lora_request,
+            prompt_adapter_request=prompt_adapter_request,
         )
         # Streaming response
         if request.stream:

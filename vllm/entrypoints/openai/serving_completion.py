@@ -124,6 +124,7 @@ class OpenAIServingCompletion(OpenAIServing):
                         truncate_prompt_tokens=sampling_params.
                         truncate_prompt_tokens)
                 prompt_ids, prompt_text = prompt_formats
+                prompt_adapter_request = request.to_prompt_adapter_request()
 
                 generator = self.engine.generate(
                     {
@@ -133,6 +134,7 @@ class OpenAIServingCompletion(OpenAIServing):
                     sampling_params,
                     f"{request_id}-{i}",
                     lora_request=lora_request,
+                    prompt_adapter_request=prompt_adapter_request,
                 )
 
                 generators.append(generator)

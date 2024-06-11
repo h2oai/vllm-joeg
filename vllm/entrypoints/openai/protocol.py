@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Annotated, Required, TypedDict
 
 from vllm.pooling_params import PoolingParams
+from vllm.prompt_adapter.request import PromptAdapterRequest
 from vllm.sampling_params import SamplingParams
 from vllm.utils import random_uuid
 
@@ -101,11 +102,19 @@ class ResponseFormat(OpenAIBaseModel):
     type: Literal["text", "json_object"]
 
 
+class PromptAdapterRequestFormat(OpenAIBaseModel):
+    prompt_adapter_name: str
+    prompt_adapter_id: int
+    prompt_adapter_local_path: str
+    prompt_adapter_num_virtual_tokens: int
+
+
 class ChatCompletionRequest(OpenAIBaseModel):
     # Ordered by official OpenAI API documentation
     # https://platform.openai.com/docs/api-reference/chat/create
     messages: List[ChatCompletionMessageParam]
     model: str
+    prompt_adapter_request: Optional[PromptAdapterRequestFormat] = None
     frequency_penalty: Optional[float] = 0.0
     logit_bias: Optional[Dict[str, float]] = None
     logprobs: Optional[bool] = False
@@ -191,6 +200,16 @@ class ChatCompletionRequest(OpenAIBaseModel):
 
     # doc: end-chat-completion-extra-params
 
+    def to_prompt_adapter_request(self) -> Optional[PromptAdapterRequest]:
+        if self.prompt_adapter_request:
+            return PromptAdapterRequest(
+                prompt_adapter_name=self.prompt_adapter_request.prompt_adapter_name,
+                prompt_adapter_id=self.prompt_adapter_request.prompt_adapter_id,
+                prompt_adapter_local_path=self.prompt_adapter_request.prompt_adapter_local_path,
+                prompt_adapter_num_virtual_tokens=self.prompt_adapter_request.prompt_adapter_num,
+            )
+        return None
+
     def to_sampling_params(self) -> SamplingParams:
         # We now allow logprobs being true without top_logrobs.
 
@@ -269,6 +288,7 @@ class CompletionRequest(OpenAIBaseModel):
     # https://platform.openai.com/docs/api-reference/completions/create
     model: str
     prompt: Union[List[int], List[List[int]], str, List[str]]
+    prompt_adapter_request: Optional[PromptAdapterRequestFormat] = None
     best_of: Optional[int] = None
     echo: Optional[bool] = False
     frequency_penalty: Optional[float] = 0.0
@@ -348,6 +368,16 @@ class CompletionRequest(OpenAIBaseModel):
             "for guided json decoding."))
 
     # doc: end-completion-extra-params
+
+    def to_prompt_adapter_request(self) -> Optional[PromptAdapterRequest]:
+        if self.prompt_adapter_request:
+            return PromptAdapterRequest(
+                prompt_adapter_name=self.prompt_adapter_request.prompt_adapter_name,
+                prompt_adapter_id=self.prompt_adapter_request.prompt_adapter_id,
+                prompt_adapter_local_path=self.prompt_adapter_request.prompt_adapter_local_path,
+                prompt_adapter_num_virtual_tokens=self.prompt_adapter_request.prompt_adapter_num,
+            )
+        return None
 
     def to_sampling_params(self):
         echo_without_generation = self.echo and self.max_tokens == 0
