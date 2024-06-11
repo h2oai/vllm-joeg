@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse, Response, StreamingResponse
 
 from vllm.engine.arg_utils import AsyncEngineArgs
 from vllm.engine.async_llm_engine import AsyncLLMEngine
+from vllm.prompt_adapter.request import PromptAdapterRequest
 from vllm.sampling_params import SamplingParams
 from vllm.usage.usage_lib import UsageContext
 from vllm.utils import random_uuid
@@ -44,11 +45,20 @@ async def generate(request: Request) -> Response:
     request_dict = await request.json()
     prompt = request_dict.pop("prompt")
     stream = request_dict.pop("stream", False)
+    prompt_adapter_request = (
+        PromptAdapterRequest(**request_dict.pop("prompt_adapter_request"))
+        if "prompt_adapter_request" in request_dict
+        else None
+    )
     sampling_params = SamplingParams(**request_dict)
     request_id = random_uuid()
 
     assert engine is not None
-    results_generator = engine.generate(prompt, sampling_params, request_id)
+    results_generator = engine.generate(
+        prompt,
+        sampling_params,
+        request_id,
+        prompt_adapter_request=prompt_adapter_request)
 
     # Streaming case
     async def stream_results() -> AsyncGenerator[bytes, None]:

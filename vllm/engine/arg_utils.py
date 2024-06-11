@@ -686,6 +686,7 @@ class AsyncEngineArgs(EngineArgs):
     """Arguments for asynchronous vLLM engine."""
     engine_use_ray: bool = False
     disable_log_requests: bool = False
+    enable_prompt_adapter: bool = False
     max_log_len: Optional[int] = None
 
     @staticmethod
