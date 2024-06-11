@@ -47,9 +47,7 @@ async def generate(request: Request) -> Response:
     stream = request_dict.pop("stream", False)
     prompt_adapter_request = (
         PromptAdapterRequest(**request_dict.pop("prompt_adapter_request"))
-        if "prompt_adapter_request" in request_dict
-        else None
-    )
+        if "prompt_adapter_request" in request_dict else None)
     sampling_params = SamplingParams(**request_dict)
     request_id = random_uuid()
 

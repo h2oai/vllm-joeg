@@ -203,10 +203,14 @@ class ChatCompletionRequest(OpenAIBaseModel):
     def to_prompt_adapter_request(self) -> Optional[PromptAdapterRequest]:
         if self.prompt_adapter_request:
             return PromptAdapterRequest(
-                prompt_adapter_name=self.prompt_adapter_request.prompt_adapter_name,
-                prompt_adapter_id=self.prompt_adapter_request.prompt_adapter_id,
-                prompt_adapter_local_path=self.prompt_adapter_request.prompt_adapter_local_path,
-                prompt_adapter_num_virtual_tokens=self.prompt_adapter_request.prompt_adapter_num,
+                prompt_adapter_name=self.prompt_adapter_request.
+                prompt_adapter_name,
+                prompt_adapter_id=self.prompt_adapter_request.
+                prompt_adapter_id,
+                prompt_adapter_local_path=self.prompt_adapter_request.
+                prompt_adapter_local_path,
+                prompt_adapter_num_virtual_tokens=self.prompt_adapter_request.
+                prompt_adapter_num_virtual_tokens,
             )
         return None
 
@@ -372,10 +376,14 @@ class CompletionRequest(OpenAIBaseModel):
     def to_prompt_adapter_request(self) -> Optional[PromptAdapterRequest]:
         if self.prompt_adapter_request:
             return PromptAdapterRequest(
-                prompt_adapter_name=self.prompt_adapter_request.prompt_adapter_name,
-                prompt_adapter_id=self.prompt_adapter_request.prompt_adapter_id,
-                prompt_adapter_local_path=self.prompt_adapter_request.prompt_adapter_local_path,
-                prompt_adapter_num_virtual_tokens=self.prompt_adapter_request.prompt_adapter_num,
+                prompt_adapter_name=self.prompt_adapter_request.
+                prompt_adapter_name,
+                prompt_adapter_id=self.prompt_adapter_request.
+                prompt_adapter_id,
+                prompt_adapter_local_path=self.prompt_adapter_request.
+                prompt_adapter_local_path,
+                prompt_adapter_num_virtual_tokens=self.prompt_adapter_request.
+                prompt_adapter_num_virtual_tokens,
             )
         return None
 
